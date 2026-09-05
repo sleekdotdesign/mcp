@@ -2,9 +2,11 @@
 
 Sleek turns a plain-language brief into real, editable mobile app screens and renders them as images. Its remote MCP server lets Claude, ChatGPT, Codex, Cursor, and any other MCP client drive it: create a project, describe the app once, get the screens back as an image, and hand the user a link where they can open, edit, and export the result.
 
+MCP is the Model Context Protocol, the open standard that lets an AI client connect to an outside tool. "Remote" means the server runs on Sleek's infrastructure, so there is nothing to install: you point your client at a URL and sign in.
+
 This repository distributes that server. It contains the manifests and documentation that point at the live server and nothing else: no server code, no scripts, no hooks, no telemetry.
 
-Endpoint: `https://sleek.design/api/mcp` (MCP Streamable HTTP, stateless, POST only).
+Endpoint: `https://sleek.design/api/mcp`. It speaks MCP over Streamable HTTP and accepts `POST` only. A `GET` returns 405 by design, because the server holds no open connection between calls.
 
 The server describes the flow to clients like this:
 
@@ -19,10 +21,10 @@ Prefer a skill in your coding agent instead of an MCP connection? See https://gi
 
 ## Install
 
-Every client connects to the same URL. There are two ways to authenticate:
+Before you start, create a Sleek account at https://sleek.design. Every client below connects to the same URL and signs in to that account. There are two ways to authenticate:
 
-- OAuth (recommended). The client discovers Sleek's authorization server, opens a browser, and you sign in to Sleek and approve access. Nothing to copy.
-- API key. Create one at https://sleek.design/agents/setup and send it as `Authorization: Bearer sk_...`. Use this in clients that cannot run OAuth.
+- OAuth (recommended). The client discovers Sleek's authorization server, opens a browser, and you sign in to Sleek and approve access. Nothing to copy. Use this unless your client cannot do it.
+- API key. Create one at https://sleek.design/agents/setup and send it as `Authorization: Bearer sk_...`. Use this only in clients that cannot run OAuth.
 
 ### Claude.ai, Claude Desktop, Cowork, and Claude mobile
 
@@ -42,7 +44,7 @@ Pre-registered OAuth client for Claude.ai (a public client, so there is no secre
 7ef50bea-9fe8-47bb-8163-68a0e21395ab
 ```
 
-On a Team or Enterprise plan, an Owner adds the connector first under **Organization settings > Connectors > Add**, hovers **Custom**, selects **Web**, enters the same URL, and optionally the client ID under **Advanced settings**. Members then open **Customize > Connectors**, find the entry labelled **Custom**, and click **Connect**.
+On a Team or Enterprise plan, an Owner adds the connector first under **Organization settings > Connectors > Add**, hovers **Custom**, selects **Web**, enters the same URL, and optionally the client ID under **Advanced settings**. Members then open **Customize > Connectors**, find the entry the Owner added, which usually carries a **Custom** label, and click **Connect**.
 
 To remove the connector, open **Customize > Connectors** and choose **Remove**. Removing it revokes Claude's access on the Claude side.
 
@@ -56,7 +58,9 @@ With OAuth:
 claude mcp add --transport http sleek https://sleek.design/api/mcp
 ```
 
-Then sign in: run `claude mcp login sleek` from your shell, or open `/mcp` inside Claude Code, select `sleek`, and follow the browser sign-in. Because the server answers `initialize` and `tools/list` without a token, `/mcp` shows `sleek` as connected before you sign in. The first tool call then returns 401, and Claude Code flags the server in `/mcp` so you can complete the sign-in there.
+Then sign in: run `claude mcp login sleek` from your shell, or open `/mcp` inside Claude Code, select `sleek`, and follow the browser sign-in.
+
+One thing to expect: `/mcp` lists `sleek` as connected before you have signed in. That is not a bug. Sleek lets any client read the server's name and its list of tools without a login, so the connection itself succeeds, and authentication is only checked when a tool runs. If you skip the sign-in and ask Claude to use Sleek, the first tool call is rejected, and Claude Code then marks `sleek` in `/mcp` as needing authentication so you can sign in from there. Signing in first avoids that round trip.
 
 As a plugin, from the self-hosted marketplace in this repository:
 
@@ -67,14 +71,17 @@ As a plugin, from the self-hosted marketplace in this repository:
 
 Then sign in the same way; the plugin's server is named `plugin:sleek:sleek` in `/mcp` and in `claude mcp login`. The plugin contains only the server definition in `.mcp.json`. It adds no hooks, skills, agents, or commands. If your claude.ai account already has a Sleek connector, Claude Code deduplicates the two entries that point at the same URL and keeps only one active in `/mcp`.
 
-With an API key instead of OAuth:
+With an API key instead of OAuth. Set the key in your shell profile first, so the value itself is never written into Claude Code's configuration:
 
 ```bash
+export SLEEK_API_KEY=sk_...   # in ~/.zshrc or ~/.bashrc
 claude mcp add --transport http sleek https://sleek.design/api/mcp \
-  --header "Authorization: Bearer $SLEEK_API_KEY"
+  --header 'Authorization: Bearer ${SLEEK_API_KEY}'
 ```
 
-When you configure an `Authorization` header, Claude Code does not fall back to OAuth if Sleek rejects the key.
+The single quotes matter. They store the `${SLEEK_API_KEY}` reference, and Claude Code reads the variable from your environment on each connection. With double quotes your shell substitutes the key and Claude Code saves it in plain text.
+
+When you configure an `Authorization` header, Claude Code treats a rejected key as a failed connection rather than as a prompt to sign in, so it does not fall back to OAuth.
 
 Verified against: https://code.claude.com/docs/en/mcp and https://code.claude.com/docs/en/plugins
 
@@ -93,7 +100,7 @@ With an API key, set `SLEEK_API_KEY` in your environment and either add the serv
 codex mcp add sleek --url https://sleek.design/api/mcp --bearer-token-env-var SLEEK_API_KEY
 ```
 
-or write this to `~/.codex/config.toml` (or to `.codex/config.toml` in a trusted project):
+or write this to `~/.codex/config.toml`, which applies to every project:
 
 ```toml
 [mcp_servers.sleek]
@@ -103,7 +110,7 @@ bearer_token_env_var = "SLEEK_API_KEY"
 
 The ChatGPT desktop app, the Codex CLI, and the IDE extension share this configuration. Codex reads the server's `instructions` field, so it receives the same one-message guidance shown above.
 
-Verified against: https://developers.openai.com/codex/mcp/
+Verified against: https://developers.openai.com/codex/mcp/ and the local CLI help (`codex mcp add --help`, codex-cli 0.136.0), which lists the `--bearer-token-env-var` flag.
 
 ### ChatGPT
 
@@ -119,7 +126,7 @@ Verified against: https://developers.openai.com/plugins/deploy/connect-chatgpt a
 
 ### Cursor
 
-Install link. Click it, or paste it into your browser's address bar, and Cursor prompts you to install the server:
+Install link. Copy it into your browser's address bar and Cursor prompts you to install the server:
 
 ```text
 cursor://anysphere.cursor-deeplink/mcp/install?name=sleek&config=eyJ1cmwiOiJodHRwczovL3NsZWVrLmRlc2lnbi9hcGkvbWNwIn0=
@@ -187,7 +194,8 @@ The server exposes eleven tools. The descriptions below are the first sentence o
 
 Notes on the tools:
 
-- `design` takes the full brief as one `message`. Optional fields: `screenId` to edit one existing screen instead of creating new ones, `referenceId` from `list_references` to imitate a style, `imageUrls` for visual input, `idempotencyKey` so a retry returns the original run instead of starting and charging a second one, and `wait` (default true). Set `wait` to false and poll `get_design_run` if your client times tool calls out in under five minutes.
+- `design` takes the full brief as one `message`. Optional fields: `screenId` to edit one existing screen instead of creating new ones (see the two ids below), `referenceId` from `list_references` to imitate a style, `imageUrls` for visual input, `idempotencyKey` so a retry returns the original run instead of starting and charging a second one, and `wait` (default true). The wait is capped at 270 seconds; after that the call returns status `running` and you poll `get_design_run`. Set `wait` to false to poll from the start if your client times tool calls out sooner than that.
+- Every screen has two ids. The `screenId` is the frame on the canvas and is what `design` takes to edit a screen. The component id, returned as `id` by `list_components`, is what `screenshot` and `get_component` take. A design run's `result.operations` returns both for every screen it creates or updates, and `list_components` and `get_component` return `screenId` next to the component `id` (`null` when a component is not on a canvas). Never pass a component id as `screenId`.
 - Only one design run can be active per project. On a conflict, poll `get_design_run` until the current run settles, or call `cancel_design_run`, then retry.
 - A failed run can include an `error.url`. That is where the user resolves the problem (for example, top up credits or upgrade). Clients should relay it.
 - `delete_project` requires `confirm: true` and should only be called after the user has named the project they want deleted.
@@ -195,7 +203,15 @@ Notes on the tools:
 
 ## Authentication and privacy
 
-**OAuth 2.1.** The server implements standard MCP authorization. Protected resource metadata is published at https://sleek.design/.well-known/oauth-protected-resource/api/mcp. The authorization server is Supabase Auth on a `supabase.co` host; its metadata is at https://ggrhecslgdflloszjkwl.supabase.co/auth/v1/.well-known/oauth-authorization-server. The flow uses the authorization code grant with PKCE (S256). Dynamic client registration is supported, so clients need no pre-configured credentials. Scopes: `openid email profile offline_access`. Consent happens at https://sleek.design/oauth/consent. Access tokens live one hour; clients refresh them automatically with the refresh token they receive through `offline_access`.
+**OAuth 2.1.** The server implements standard MCP authorization.
+
+- Protected resource metadata: https://sleek.design/.well-known/oauth-protected-resource/api/mcp
+- Authorization server: Supabase Auth on a `supabase.co` host. Its metadata is at https://ggrhecslgdflloszjkwl.supabase.co/auth/v1/.well-known/oauth-authorization-server
+- Grant: authorization code with PKCE (S256)
+- Client registration: dynamic, so clients need no pre-configured credentials
+- Scopes: `openid email profile offline_access`
+- Consent screen: https://sleek.design/oauth/consent
+- Token lifetime: access tokens live one hour. Clients refresh them automatically with the refresh token that `offline_access` grants.
 
 **What you grant.** Approving the consent screen gives the client access to your Sleek workspace on your behalf: to list, create, and delete projects, to design and edit screens, and to spend the workspace's credits when it runs `design`. The server acts as you; it cannot do anything your account cannot do.
 
@@ -205,7 +221,7 @@ Notes on the tools:
 
 **Network.** The only destinations are `sleek.design` and its authorization server on `supabase.co`. This repository ships no code, no hooks, and no telemetry, and the plugin manifest adds nothing beyond the server definition. What the server stores and how long is described in Sleek's privacy policy: https://sleek.design/privacy. Documentation for agents: https://sleek.design/agents.
 
-**Directory policies.** Sleek is a design tool that produces UI mockups. Anthropic's Software Directory Policy excludes standalone AI image generation but states that "Design-focused software that uses AI models to create visual aids (such as slides, diagrams, charts, UI mockups, logos, or other design assets) are permitted." Sleek falls under that carve-out.
+**Directory policies.** Sleek is a design tool that produces UI mockups. Anthropic's Software Directory Policy lists as unsupported "Software that uses AI models to generate images, video, or audio content." It then states: "Design-focused software that uses AI models to create visual aids (such as slides, diagrams, charts, UI mockups, logos, or other design assets) are permitted. These servers may generate images as part of a design workflow, provided the developer does not offer standalone image generation as a primary service." Sleek's `design` tool returns editable HTML screens, `screenshot` renders existing screens to an image, and Sleek offers no standalone image generation. Policy text: https://support.claude.com/en/articles/13145358-anthropic-software-directory-policy
 
 ## Pricing
 
@@ -221,19 +237,19 @@ Current plans: https://sleek.design/pricing
 
 > Design a plant shop app in Sleek: onboarding, home with featured plants, plant detail, cart, and profile. Warm, minimal style.
 
-The client calls `list_projects` to check for an existing project, then `create_project` with a name such as "Plant shop". It sends the entire brief as one `design` call, waits for the run to complete, and receives `result.operations`, one entry per screen created. It then calls `screenshot` with up to four of the new screen ids and shows the image, and it shares the `projectUrl`. This spends credits once, for the single run. Splitting the brief into five `design` calls would spend credits five times and produce five unrelated screens.
+The client calls `list_projects` to check for an existing project, then `create_project` with a name such as "Plant shop". It sends the entire brief as one `design` call, waits for the run to complete, and receives `result.operations`, one entry per screen created, each with its `screenId` and `componentId`. It then calls `screenshot` with up to four of the new screen ids and shows the image, and it shares the `projectUrl`. This spends credits once, for the single run. Splitting the brief into five `design` calls would spend credits five times and produce five unrelated screens.
 
 **2. Look at screens without spending anything.**
 
 > Show me the cart and profile screens from my plant shop project.
 
-The client calls `list_projects` to find the project, `list_components` to get the screen ids and names, and `screenshot` with the two matching `componentIds`. The image comes back inline. Listing and rendering are free, so nothing is charged.
+The client calls `list_projects` to find the project, `list_components` to get each screen's name and component `id`, and `screenshot` with the two matching ids as `componentIds`. The image comes back inline. Listing and rendering are free, so nothing is charged.
 
 **3. Edit one existing screen.**
 
 > On the plant detail screen, move the Add to cart button into a sticky bottom bar and make the price larger.
 
-The client takes the `screenId` of the plant detail screen from the earlier run's `result.operations[].screenId` (or from `list_components`) and calls `design` with `projectId`, the edit as `message`, and that `screenId`. The agent edits that screen instead of creating new ones. When the run completes, the client renders the updated screen with `screenshot` and shares the `projectUrl`. This is a design run, so it spends credits.
+The client takes the `screenId` of the plant detail screen from the earlier run's `result.operations[].screenId`, or from the `screenId` field that `list_components` returns for that screen, and calls `design` with `projectId`, the edit as `message`, and that `screenId`. It does not pass the screen's component `id`; that id is for `screenshot` and `get_component`, and `design` rejects it. The agent edits that screen instead of creating new ones. When the run completes, the client renders the updated screen with `screenshot` and shares the `projectUrl`. This is a design run, so it spends credits.
 
 ## Publishing
 
@@ -245,7 +261,7 @@ For maintainers of this repository.
 claude plugin validate . --strict
 ```
 
-The command checks `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`. With `--strict`, warnings such as unrecognized fields fail the run.
+The command validates `.claude-plugin/marketplace.json` and, through its plugin entry, `.claude-plugin/plugin.json`; the output names only the marketplace manifest. With `--strict`, warnings such as unrecognized fields fail the run. To check the plugin manifest on its own, pass its path: `claude plugin validate .claude-plugin/plugin.json --strict`.
 
 ### Local install test
 
@@ -266,11 +282,12 @@ Opening this repository itself in Claude Code also offers to approve the `sleek`
 `server.json` describes the server for the MCP Registry under the DNS-verified namespace `design.sleek`, the reverse-DNS form of `sleek.design`.
 
 1. Install `mcp-publisher`: `brew install mcp-publisher`, or download a release binary from https://github.com/modelcontextprotocol/registry/releases.
-2. Generate an Ed25519 key pair and the DNS record. This needs OpenSSL 3; the macOS system `openssl` is LibreSSL, so use the Homebrew `openssl@3` binary:
+2. Generate an Ed25519 key pair and the DNS record. This needs OpenSSL 3. The macOS system `openssl` is LibreSSL and fails with `Algorithm Ed25519 not found`, so install OpenSSL 3 with `brew install openssl@3` and point `OPENSSL` at it (on Linux, set `OPENSSL=openssl`):
 
    ```bash
-   openssl genpkey -algorithm Ed25519 -out key.pem
-   PUBLIC_KEY="$(openssl pkey -in key.pem -pubout -outform DER | tail -c 32 | base64)"
+   OPENSSL=/opt/homebrew/opt/openssl@3/bin/openssl   # Intel Macs: /usr/local/opt/openssl@3/bin/openssl
+   "$OPENSSL" genpkey -algorithm Ed25519 -out key.pem
+   PUBLIC_KEY="$("$OPENSSL" pkey -in key.pem -pubout -outform DER | tail -c 32 | base64)"
    echo "sleek.design. IN TXT \"v=MCPv1; k=ed25519; p=${PUBLIC_KEY}\""
    ```
 
@@ -278,7 +295,7 @@ Opening this repository itself in Claude Code also offers to approve the `sleek`
 4. Log in with DNS verification, validate, and publish from the repository root:
 
    ```bash
-   PRIVATE_KEY="$(openssl pkey -in key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n')"
+   PRIVATE_KEY="$("$OPENSSL" pkey -in key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n')"
    mcp-publisher login dns --domain sleek.design --private-key "${PRIVATE_KEY}"
    mcp-publisher validate
    mcp-publisher publish
@@ -292,8 +309,8 @@ Keep `key.pem` out of the repository. References: https://github.com/modelcontex
 
 1. Make this repository public and confirm `claude plugin validate . --strict` passes.
 2. Submit the GitHub link through the Console form at https://platform.claude.com/plugins/submit. This form is open to individual authors; it needs a Developer, Admin, or Owner role on a Console organization. Team and Enterprise organizations can use the form in claude.ai organization settings instead.
-3. Review is automated validation plus safety screening against the published reviewer prompt: https://github.com/anthropics/claude-plugins-official/blob/main/.github/policy/prompt.md. This repository has no hooks, no shipped code, no telemetry, and a description that states the network destination, the credit cost, and the paid plan, so it passes each rule in that prompt.
-4. Approved plugins are pinned in the community catalog and updates propagate from git as you push; no resubmission is needed. Details: https://claude.com/docs/plugins/submit and https://github.com/anthropics/claude-plugins-community.
+3. Review is automated validation plus safety screening against the published reviewer prompt: https://github.com/anthropics/claude-plugins-official/blob/main/.github/policy/prompt.md. The review reads every shipped file. This repository has no hooks, no shipped code, no telemetry, and a description that states the network destination, the credit cost, and the paid plan.
+4. Each community catalog entry pins a commit from this repository. CI moves the pin as you push and the public catalog syncs nightly, so a change can take up to a day to appear. No resubmission is needed. Details: https://claude.com/docs/plugins/submit and https://github.com/anthropics/claude-plugins-community.
 
 ### Connectors Directory (claude.ai)
 
@@ -304,7 +321,7 @@ This submission is for the server URL, not for this repository. Requirements fro
 - Listing assets: name (100 characters max), tagline (55 characters max), description (2,000 characters max), one to five categories, documentation URL, privacy policy URL, support contact, an icon, and a URL slug that is permanent once published.
 - Tool annotations: every tool has a `title` and `readOnlyHint` or `destructiveHint`. The server already publishes these.
 - OAuth 2.0 for authentication, and Streamable HTTP transport. Both are in place.
-- Seven policy acknowledgments, including AI media generation. Sleek is covered by the UI-mockup carve-out quoted above; say so in the use-case fields.
+- Seven policy acknowledgments, including AI media generation. In the use-case fields, state that Sleek produces UI mockups as editable HTML screens and offers no standalone image generation, which is the condition the policy's design carve-out sets.
 
 Two items reviewers may raise; the maintainer decides on each separately:
 
