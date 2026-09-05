@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "sleek",
+  "displayName": "Sleek",
+  "version": "1.0.0",
+  "description": "Connects Claude to Sleek (sleek.design), an AI mobile app design tool, over the network through Sleek's remote MCP server at https://sleek.design/api/mcp. You sign in to your own Sleek account with OAuth, or configure an API key. The tools let Claude list, create, fetch, and permanently delete your Sleek projects; list the screens in a project and fetch a screen's HTML; list Sleek's curated design references; run Sleek's design agent to create or edit screens from a plain-language brief; check or cancel a design run; and render up to four screens to an image. Design runs spend your Sleek workspace's AI credits. Listing, reading, and rendering are free. Free accounts get one-time trial credits (about one design run); sustained use requires a paid Sleek plan (Pro or higher). The plugin contains only this server definition: no hooks, skills, agents, commands, or telemetry. The only network destinations are sleek.design and its OAuth authorization server (a supabase.co host).",
+  "author": { "name": "Sleek", "url": "https://sleek.design" },
+  "homepage": "https://sleek.design/agents",
+  "repository": "https://github.com/sleekdotdesign/mcp",
+  "license": "MIT",
+  "keywords": ["design", "mobile", "ui", "ios", "android", "mockup", "prototyping", "react-native", "swiftui"],
+  "mcpServers": "./.mcp.json"
+}

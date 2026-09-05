@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "design.sleek/sleek",
+  "title": "Sleek",
+  "description": "Design mobile app screens from a plain-language brief and render them as images.",
+  "version": "1.0.0",
+  "websiteUrl": "https://sleek.design/agents",
+  "repository": {
+    "url": "https://github.com/sleekdotdesign/mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://sleek.design/api/mcp"
+    }
+  ]
+}
