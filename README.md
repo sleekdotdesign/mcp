@@ -26,10 +26,11 @@ Send the whole app as **one** request. Sleek's design agent plans the screen set
 
 ## Connect your client
 
-Every client uses the same URL. There are two ways to sign in:
+Every client uses the same URL.
 
-- **OAuth (recommended).** Your client opens a browser, you sign in to Sleek and approve access. Nothing to copy or store.
-- **API key.** Create one at [sleek.design/agents/setup](https://sleek.design/agents/setup) and send it as an `Authorization: Bearer sk_...` header. Use this only in clients that can't do OAuth.
+**Sign in with OAuth.** This is the way to connect Sleek. Add the URL, your client opens a browser, you approve access, done. Nothing to copy, nothing to store, and you can revoke it from either side. Every client on this page supports it, so follow the steps for yours and you are finished.
+
+**Do not reach for an API key first.** Keys exist only for clients that cannot do OAuth at all. A key is a long-lived secret with the same power over your workspace as a full OAuth grant, it does not expire on its own, and configuring one stops your client from ever offering the browser sign-in. If OAuth is failing, fix that rather than working around it; the [troubleshooting](#troubleshooting) section covers the usual causes. The API-key steps below are folded away on purpose.
 
 ### Claude.ai, Claude Desktop, Cowork, and mobile
 
@@ -77,7 +78,7 @@ Or install it as a plugin from the marketplace in this repository:
 Then sign in the same way. The plugin's server appears as `plugin:sleek:sleek`. It ships only the server definition in `.mcp.json`: no hooks, skills, agents, or commands.
 
 <details>
-<summary>Using an API key instead of OAuth</summary>
+<summary>Last resort: API key instead of OAuth</summary>
 
 Put the key in your shell profile first, so the value is never written into Claude Code's config:
 
@@ -101,7 +102,7 @@ codex mcp login sleek
 The ChatGPT desktop app, the Codex CLI, and the IDE extension share this configuration.
 
 <details>
-<summary>Using an API key instead of OAuth</summary>
+<summary>Last resort: API key instead of OAuth</summary>
 
 Set `SLEEK_API_KEY` in your environment, then either:
 
@@ -143,7 +144,7 @@ Or add it by hand to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (
 { "mcpServers": { "sleek": { "url": "https://sleek.design/api/mcp" } } }
 ```
 
-Cursor runs the OAuth sign-in when you enable the server. To use an API key instead, add a header; Cursor resolves `${env:NAME}`:
+Cursor runs the OAuth sign-in when you enable the server, which is all you need. Only if that is impossible, add a header; Cursor resolves `${env:NAME}`:
 
 ```json
 { "mcpServers": { "sleek": { "url": "https://sleek.design/api/mcp", "headers": { "Authorization": "Bearer ${env:SLEEK_API_KEY}" } } } }
@@ -157,7 +158,7 @@ Add a remote server with the Streamable HTTP transport. The exact `type` value v
 { "mcpServers": { "sleek": { "type": "streamable-http", "url": "https://sleek.design/api/mcp" } } }
 ```
 
-Clients that implement MCP authorization discover everything they need from the [protected resource metadata](https://sleek.design/.well-known/oauth-protected-resource/api/mcp) and can register themselves dynamically. For clients without OAuth, send `"headers": { "Authorization": "Bearer sk_..." }` instead.
+Clients that implement MCP authorization discover everything they need from the [protected resource metadata](https://sleek.design/.well-known/oauth-protected-resource/api/mcp) and register themselves dynamically, so this is usually the whole configuration. Only a client with no OAuth support at all needs `"headers": { "Authorization": "Bearer sk_..." }` added to it.
 
 ## What you can ask for
 
@@ -253,7 +254,7 @@ The server implements standard MCP authorization with OAuth 2.1: authorization c
 
 **How to revoke.** On the client side, remove the connector (claude.ai: **Customize → Connectors → Remove**; Claude Code: **Clear authentication** in `/mcp`, or `claude mcp logout sleek`, or `claude mcp remove sleek`, which also deletes the stored tokens). On the Sleek side, revoke the grant or the API key from your account at [sleek.design](https://sleek.design), or email support@sleek.design.
 
-**API keys.** A key from [sleek.design/agents/setup](https://sleek.design/agents/setup) is a secret with the same access as an OAuth grant. Keep it in an environment variable and revoke it if it leaks.
+**API keys are the fallback, not the default.** A key from [sleek.design/agents/setup](https://sleek.design/agents/setup) is a secret carrying the same access as an OAuth grant, with none of its safeguards: it does not expire, it is not bound to a device, and anyone who reads it has your workspace until you revoke it. Use one only where OAuth cannot run. Keep it in an environment variable, never in a file you commit, and revoke it the moment it leaks.
 
 **Network.** The only destinations are `sleek.design` and its authorization server. This repository ships no code, no hooks, and no telemetry, and the plugin manifest adds nothing beyond the server definition. What Sleek stores and for how long is in the [privacy policy](https://sleek.design/privacy).
 
