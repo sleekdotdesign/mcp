@@ -1,6 +1,6 @@
 # Sleek MCP server
 
-Describe a mobile app in plain language and get real, editable screens back, rendered as an image right in your chat.
+Describe a mobile app in plain language and get real, editable screens back, rendered as an image right in your chat. Your coding agent can then build the working app from them.
 
 Sleek is an AI mobile app design tool. This is its remote MCP server, which lets Claude, ChatGPT, Codex, Cursor, and any other MCP client design for you: you say "design a plant shop app with onboarding, home, product detail, and cart", and your assistant creates a project, runs the design agent, shows you the screens, and hands you a link where you can open them, edit them, and export them to Figma or code.
 

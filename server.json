@@ -2,9 +2,16 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "design.sleek/sleek",
   "title": "Sleek",
-  "description": "Design mobile app screens from a plain-language brief and render them as images.",
-  "version": "1.0.0",
+  "description": "Design your mobile app UI with AI, then have your coding agent build the real app from it.",
+  "version": "1.0.1",
   "websiteUrl": "https://sleek.design/agents",
+  "icons": [
+    {
+      "src": "https://sleek.design/icon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    }
+  ],
   "repository": {
     "url": "https://github.com/sleekdotdesign/mcp",
     "source": "github"

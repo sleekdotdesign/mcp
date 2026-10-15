@@ -1,12 +1,12 @@
 {
   "name": "sleek",
-  "description": "Sleek's remote MCP server for Claude Code: design mobile app screens from a plain-language brief.",
+  "description": "Sleek's remote MCP server for Claude Code. Design your mobile app UI with AI, then have Claude build the real app from it.",
   "owner": { "name": "Sleek", "url": "https://sleek.design" },
   "plugins": [
     {
       "name": "sleek",
       "source": "./",
-      "description": "Connects Claude Code to Sleek's remote MCP server (https://sleek.design/api/mcp) to create projects, design mobile app screens from a plain-language brief, and render them as images. It can also permanently delete a project when you ask it to. Design runs spend your Sleek workspace's AI credits; listing, reading, and rendering are free, and sustained use requires a paid Sleek plan. MCP server only: no hooks, skills, agents, or commands.",
+      "description": "Connects Claude Code to Sleek's remote MCP server (https://sleek.design/api/mcp) to create projects, design mobile app screens from a description of your app, fetch each screen's HTML to build from, and render screens as images. It can also permanently delete a project when you ask it to. Design runs spend your Sleek workspace's AI credits; listing, reading, and rendering are free, and sustained use requires a paid Sleek plan. MCP server only: no hooks, skills, agents, or commands.",
       "category": "design",
       "homepage": "https://sleek.design/agents",
       "license": "MIT"
