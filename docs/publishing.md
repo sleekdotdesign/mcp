@@ -44,13 +44,13 @@ Opening this repository in Claude Code also offers to approve the `sleek` server
 4. Log in with DNS verification, validate, and publish from the repository root:
 
    ```bash
-   PRIVATE_KEY="$("$OPENSSL" pkey -in key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n')"
+   PRIVATE_KEY="$("$OPENSSL" pkey -in key.pem -outform DER | tail -c 32 | xxd -p -c 64)"
    mcp-publisher login dns --domain sleek.design --private-key "${PRIVATE_KEY}"
    mcp-publisher validate
    mcp-publisher publish
    ```
 
-5. Confirm the listing at https://registry.modelcontextprotocol.io. Bump `version` in `server.json` for each publish.
+5. Confirm the listing at https://registry.modelcontextprotocol.io. Bump `version` in `server.json` for each publish, because a published version cannot change.
 
 `key.pem` is gitignored. Keep it out of the repository.
 
