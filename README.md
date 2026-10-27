@@ -1,6 +1,6 @@
 # Sleek MCP server
 
-Describe a mobile app in plain language and get real, editable screens back, rendered as an image right in your chat. Your coding agent can then build the working app from them.
+Describe a mobile app in plain language and get real, editable screens back, shown right in your chat. Your coding agent can then build the working app from them.
 
 Sleek is an AI mobile app design tool. This is its remote MCP server, which lets Claude, ChatGPT, Codex, Cursor, and any other MCP client design for you: you say "design a plant shop app with onboarding, home, product detail, and cart", and your assistant creates a project, runs the design agent, shows you the screens, and hands you a link where you can open them, edit them, and export them to Figma or code.
 
@@ -166,13 +166,13 @@ Clients that implement MCP authorization discover everything they need from the 
 
 > Design a plant shop app in Sleek: onboarding, home with featured plants, plant detail, cart, and profile. Warm, minimal style.
 
-Your assistant creates a project, sends the whole brief as a single design run, renders the new screens into one image, and shares the project link. One run, charged once.
+Your assistant creates a project, sends the whole brief as a single design run, shows you the new screens inline (or as one rendered image where the client can't display apps), and shares the project link. One run, charged once.
 
 **Look at what you already have, for free.**
 
 > Show me the cart and profile screens from my plant shop project.
 
-Listing and rendering cost nothing, so browsing your projects never spends credits.
+Listing, showing, and rendering cost nothing, so browsing your projects never spends credits.
 
 **Edit one screen.**
 
@@ -201,7 +201,7 @@ Free accounts get one-time trial credits, enough for about one design run. Susta
 
 ## Tools
 
-The server exposes eleven tools. Your assistant picks them for you; this table is for reference.
+Your assistant can call twelve tools. It picks them for you; this table is for reference.
 
 | Tool | What it does | Cost |
 | :--- | :--- | :--- |
@@ -215,7 +215,10 @@ The server exposes eleven tools. Your assistant picks them for you; this table i
 | `design` | Run the design agent to create or edit screens from a brief | Spends credits |
 | `get_design_run` | Check the status of a design run | Free |
 | `cancel_design_run` | Stop a queued or running design run | Free (credits already spent are not refunded) |
-| `screenshot` | Render up to four screens into one image, shown inline | Free |
+| `show_project` | Show a project's screens inline in clients that can display apps, highlighting what a design run changed | Free |
+| `screenshot` | Render up to four screens into one image, for clients that can't display apps | Free |
+
+The server's `tools/list` returns fifteen tools, so some clients list three more: `open_sleek`, `get_project_view`, and `search_mentions`. Only Sleek's in-chat screen viewer and ChatGPT's sidebar call these. They are hidden from your assistant, and they're free.
 
 Details that matter if you're driving the tools directly:
 
@@ -224,7 +227,7 @@ Details that matter if you're driving the tools directly:
 - Only one design run can be active per project. On a conflict, poll `get_design_run` until the current run settles, or call `cancel_design_run`, then retry.
 - A failed run can include an `error.url`. That's where you resolve the problem, usually topping up credits or upgrading. Clients should pass it along.
 - `delete_project` requires `confirm: true`, and should only run after you've named the project you want deleted.
-- `screenshot` renders up to four screens per call. Render more in batches.
+- After a design run completes, call `show_project` with its `runId` to show what the run made. Fall back to `screenshot` only where the client can't display apps; it renders up to four screens per call, so render more in batches.
 
 ## Troubleshooting
 
