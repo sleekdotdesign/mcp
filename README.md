@@ -150,6 +150,45 @@ Cursor runs the OAuth sign-in when you enable the server, which is all you need.
 { "mcpServers": { "sleek": { "url": "https://sleek.design/api/mcp", "headers": { "Authorization": "Bearer ${env:SLEEK_API_KEY}" } } } }
 ```
 
+### Hermes Agent
+
+This repository already contains the Hermes Agent plugin, in [`hermes/`](hermes/). It needs Hermes 0.22.3 or later.
+
+```bash
+hermes plugins install sleekdotdesign/mcp/hermes
+hermes plugins enable sleek
+hermes mcp add sleek --url https://sleek.design/api/mcp --auth oauth
+hermes config set mcp_servers.sleek.trust untrusted
+```
+
+A portable Hermes plugin can't start OAuth by itself, so the `mcp add … --auth oauth` step is required. Skip it and Hermes lists the tools but every call is rejected. Once Sleek is in the Hermes plugin catalog, the first line becomes `hermes plugins install sleek`.
+
+Then start a Hermes session and ask Sleek for something, such as "list my Sleek projects" or "design a plant shop app in Sleek". The first tool call opens your browser to sign in to Sleek. Approve access, and Hermes stores the token and refreshes it for you.
+
+The plugin marks the server `trust: untrusted`, so Hermes asks before every write-capable tool call and shows the credit cost on `design`. The native entry that `mcp add` writes replaces the plugin's trust setting, which is why the `config set` line puts it back. The result in `config.yaml`:
+
+```yaml
+mcp_servers:
+  sleek:
+    url: https://sleek.design/api/mcp
+    auth: oauth
+    trust: untrusted
+```
+
+<details>
+<summary>Last resort: API key instead of OAuth</summary>
+
+```bash
+hermes mcp add sleek --url https://sleek.design/api/mcp --auth header
+hermes config set mcp_servers.sleek.trust untrusted
+```
+
+Paste your key at the prompt. Hermes saves it to your profile's `.env` as `MCP_SLEEK_API_KEY` and writes only the reference `Authorization: Bearer ${MCP_SLEEK_API_KEY}` to `config.yaml`.
+
+</details>
+
+The full plugin page, with costs, disclosures, and headless sign-in, is [hermes/README.md](hermes/README.md). The `hermes/` folder is the Hermes Agent package only; it is not part of the Claude Code plugin, which still ships only the server definition in `.mcp.json`.
+
 ### Any other MCP client
 
 Add a remote server with the Streamable HTTP transport. The exact `type` value varies by client (`http`, `streamable-http`, or omitted):
