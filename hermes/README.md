@@ -23,7 +23,6 @@ hermes plugins install sleekdotdesign/mcp/hermes
 hermes plugins enable sleek
 hermes mcp add sleek --url https://sleek.design/api/mcp --auth oauth
 hermes config set mcp_servers.sleek.trust untrusted
-hermes mcp login sleek
 ```
 
 Once Sleek is listed in the Hermes plugin catalog, the first line becomes `hermes plugins install sleek`.
@@ -34,11 +33,18 @@ What each step does:
 2. `plugins enable` turns it on: the `sleek` server, its cost table, and the `sleek` skill.
 3. `mcp add … --auth oauth` tells Hermes to sign in to this server with OAuth. A portable plugin cannot turn on OAuth by itself, so this step is required. Without it, Hermes still lists Sleek's tools (Sleek serves its tool list without a login), but every tool call is rejected with 401.
 4. `config set … trust untrusted` keeps Hermes asking before write-capable calls (see [Trust and approvals](#trust-and-approvals)).
-5. `mcp login` opens your browser. Sign in to Sleek and approve access. Hermes stores the token and refreshes it for you.
 
-Start a new session, or run `/reload-mcp` in an open one, then ask:
+## Sign in
+
+Start a new session, or run `/reload-mcp` in an open one, then ask Sleek for something:
+
+> List my Sleek projects.
 
 > Design a plant shop app in Sleek: onboarding, home with featured plants, plant detail, cart, and profile. Warm, minimal style.
+
+The first tool call opens your browser to sign in to Sleek. Sign in, approve access, and Hermes finishes the call. Hermes stores the token and refreshes it for you, so you sign in once.
+
+`hermes mcp login sleek` does not open the browser for Sleek: Sleek lists its tools without a login, so there is nothing for that command to sign in to. Sign-in starts on the first tool call instead.
 
 ## Trust and approvals
 
@@ -58,7 +64,7 @@ Check with `hermes config get mcp_servers.sleek.trust`. Set `trust: full` only i
 
 ## Remote and headless hosts
 
-`hermes mcp login` listens for the OAuth callback on `127.0.0.1` on the machine running Hermes. Open the sign-in link in a browser on that same machine. If Hermes runs on a server and your browser is on your laptop, either paste the final redirect URL back at the terminal prompt Hermes shows, forward the callback port with `ssh -N -L <port>:127.0.0.1:<port> user@host`, or sign in from Hermes Desktop, which relays the callback for you.
+When the first tool call starts sign-in, Hermes listens for the OAuth callback on `127.0.0.1` on the machine running Hermes. Open the sign-in link in a browser on that same machine. If Hermes runs on a server and your browser is on your laptop, either paste the final redirect URL back at the terminal prompt Hermes shows, forward the callback port with `ssh -N -L <port>:127.0.0.1:<port> user@host`, or sign in from Hermes Desktop, which relays the callback for you.
 
 <details>
 <summary>Last resort: API key instead of OAuth</summary>

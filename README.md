@@ -159,12 +159,13 @@ hermes plugins install sleekdotdesign/mcp/hermes
 hermes plugins enable sleek
 hermes mcp add sleek --url https://sleek.design/api/mcp --auth oauth
 hermes config set mcp_servers.sleek.trust untrusted
-hermes mcp login sleek
 ```
 
-A portable Hermes plugin can't start OAuth by itself, so the `mcp add … --auth oauth` step is required; `mcp login` then opens your browser to sign in to Sleek. Skip it and Hermes lists the tools but every call is rejected. Once Sleek is in the Hermes plugin catalog, the first line becomes `hermes plugins install sleek`.
+A portable Hermes plugin can't start OAuth by itself, so the `mcp add … --auth oauth` step is required. Skip it and Hermes lists the tools but every call is rejected. Once Sleek is in the Hermes plugin catalog, the first line becomes `hermes plugins install sleek`.
 
-The plugin marks the server `trust: untrusted`, so Hermes asks before every write-capable tool call and shows the credit cost on `design`. The native entry `mcp add` writes replaces the plugin's trust setting, which is why the `config set` line puts it back. The result in `config.yaml`:
+Then start a Hermes session and ask Sleek for something, such as "list my Sleek projects" or "design a plant shop app in Sleek". The first tool call opens your browser to sign in to Sleek. Approve access, and Hermes stores the token and refreshes it for you.
+
+The plugin marks the server `trust: untrusted`, so Hermes asks before every write-capable tool call and shows the credit cost on `design`. The native entry that `mcp add` writes replaces the plugin's trust setting, which is why the `config set` line puts it back. The result in `config.yaml`:
 
 ```yaml
 mcp_servers:

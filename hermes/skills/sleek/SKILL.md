@@ -39,4 +39,4 @@ Pass the screen's `screenId` to `design` with the change, for example "move Add 
 
 ## Sign-in
 
-Hermes handles sign-in. If a tool returns 401 or says authentication is required, tell the user to run `hermes mcp login sleek` and sign in to Sleek in the browser. If a tool result includes a URL for the user to act on, send it to them.
+Hermes handles sign-in. The first tool call opens the browser to sign in to Sleek; if a tool returns 401 or says authentication is required, tell the user to sign in to Sleek in the browser window Hermes opened and approve access, then retry. If a tool result includes a URL for the user to act on, send it to them.
