@@ -1,0 +1,24 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "sleek",
+  "version": "1.0.0",
+  "description": "Design mobile app screens with Sleek's hosted MCP server (https://sleek.design/api/mcp): create projects, run Sleek's design agent from a description of your app, show or render the screens, and fetch each screen's HTML to build from. Design runs spend your Sleek workspace's AI credits.",
+  "author": { "name": "Sleek", "url": "https://sleek.design" },
+  "homepage": "https://sleek.design/agents",
+  "repository": "https://github.com/sleekdotdesign/mcp",
+  "license": "MIT",
+  "keywords": ["design", "mobile", "ui", "mcp"],
+  "extensions": {
+    "com.nousresearch.hermes": {
+      "servers": {
+        "sleek": {
+          "trust": "untrusted",
+          "costs": {
+            "design": { "credits": [5, 30], "note": "about 30 per new screen, 5 to 30 per edit" }
+          },
+          "cost_unit": "credits"
+        }
+      }
+    }
+  }
+}
